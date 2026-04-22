@@ -345,7 +345,7 @@ impl ProcessMonitor {
             .map(|p| crate::ProcessSummary {
                 pid: p.pid,
                 name: p.name.clone(),
-                path: p.path.clone(),
+                path: sanitize_path(&p.path),
                 cpu_usage: 0.0,
                 memory_usage: 0,
             })
