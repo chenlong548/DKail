@@ -12,6 +12,28 @@ const MAX_PROCESS_COUNT: usize = 4096;
 /// Maximum process name buffer size
 const MAX_PATH: usize = 260;
 
+/// Sanitize path to remove sensitive information like usernames
+fn sanitize_path(path: &str) -> String {
+    if path.is_empty() {
+        return path.to_string();
+    }
+    
+    path.replace(|c: char| c == '\\' || c == '/', "/")
+        .split('/')
+        .map(|part| {
+            if part.len() > 2 && part != "Users" && part != "Program Files" && part != "Program Files (x86)" && part != "Windows" && part != "ProgramData" {
+                if part.chars().all(|c| c.is_alphanumeric() || c == '_' || c == '-' || c == '.') {
+                    if !part.contains('.') && part.len() < 20 {
+                        return "***";
+                    }
+                }
+            }
+            part
+        })
+        .collect::<Vec<_>>()
+        .join("/")
+}
+
 /// Custom error types for process monitoring
 #[derive(Debug, thiserror::Error)]
 pub enum ProcessError {
@@ -61,13 +83,11 @@ impl Drop for ProcessHandle {
             unsafe {
                 use winapi::um::handleapi::CloseHandle;
                 CloseHandle(self.handle);
-                info!("Process handle closed successfully");
             }
         }
     }
 }
 
-// Allow ProcessHandle to be used like a raw pointer where needed
 impl Deref for ProcessHandle {
     type Target = *mut winapi::ctypes::c_void;
     
@@ -75,10 +95,6 @@ impl Deref for ProcessHandle {
         &self.handle
     }
 }
-
-// Make ProcessHandle Send + Sync safe for use in async contexts
-unsafe impl Send for ProcessHandle {}
-unsafe impl Sync for ProcessHandle {}
 
 pub struct ProcessMonitor {
     pub process_cache: HashMap<u32, ProcessInfo>,
