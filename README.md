@@ -133,6 +133,25 @@ dkail/
 - Network capture requires Npcap driver installation
 - All unsafe code blocks use RAII pattern for proper resource management
 
+### Security Features
+
+- **API Authentication**: Bearer token authentication with constant-time comparison
+- **Rate Limiting**: 100 requests per 60 seconds per IP address
+- **CORS Protection**: Configurable cross-origin resource sharing
+- **Path Sanitization**: Sensitive information (usernames) is masked in API responses
+- **Error Handling**: Proper error responses without exposing internal details
+
+### Security Best Practices
+
+1. **Set a strong authentication token**:
+   ```powershell
+   $env:DKAIL_AUTH_TOKEN = "your-secure-random-token-here"
+   ```
+
+2. **Run with minimal privileges**: The application only requires `PROCESS_QUERY_LIMITED_INFORMATION`
+
+3. **Monitor logs**: Check logs for authentication failures and rate limit violations
+
 ## License
 
 MIT License
@@ -148,3 +167,4 @@ Contributions are welcome! Please read our contributing guidelines before submit
   - Process behavior monitoring
   - Threat detection
   - Desktop UI application
+  - Security fixes: API authentication, rate limiting, CORS, path sanitization
