@@ -1,0 +1,33 @@
+[package]
+name = "dkail"
+version = "1.0.0"
+edition = "2021"
+authors = ["DKail Team"]
+description = "A lightweight local network security management system"
+
+[dependencies]
+tokio = { version = "1.35", features = ["full", "signal"] }
+actix-web = "4.4"
+actix-rt = "2.9"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+log = "0.4"
+env_logger = "0.10"
+chrono = { version = "0.4", features = ["serde"] }
+winapi = { version = "0.3", features = ["winuser", "processthreadsapi", "handleapi", "psapi", "winnt", "securitybaseapi", "iphlpapi", "winsock2"] }
+pcap = "1.1"
+dns-parser = "0.8"
+httparse = "1.8"
+thiserror = "1.0"
+futures = "0.3"
+
+[dev-dependencies]
+tempfile = "3.9"
+
+[[bin]]
+name = "dkail"
+path = "src/main.rs"
+
+[lib]
+name = "dkail"
+path = "src/lib.rs"

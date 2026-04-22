@@ -1,0 +1,54 @@
+# Build outputs
+/target/
+/dkail-ui/src-tauri/target/
+/dkail-ui/dist/
+/dkail-ui/node_modules/
+
+# Local development files
+/old/
+/.trae/
+/wpcap_lib/
+/mingw64/
+
+# Local documentation
+/docs/本地工具路径.md
+/docs/开发者指南.md
+/docs/Rust学习笔记.md
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Package lock files (optional, uncomment if needed)
+# package-lock.json
+# Cargo.lock

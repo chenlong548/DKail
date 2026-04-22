@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 全局样式 */
+:root {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0D1117;
+  color: #E6EDF3;
+  overflow: hidden;
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #161B22;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #30363D;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #484F58;
+}
+
+/* 自定义组件样式 */
+@layer components {
+  .card {
+    @apply bg-kali-bg border border-kali-border rounded-lg p-4;
+  }
+
+  .card-header {
+    @apply text-lg font-semibold text-kali-text mb-4 flex items-center gap-2;
+  }
+
+  .btn {
+    @apply px-4 py-2 rounded-md font-medium transition-all duration-200;
+  }
+
+  .btn-primary {
+    @apply bg-kali-green text-kali-dark hover:bg-kali-success;
+  }
+
+  .btn-secondary {
+    @apply bg-kali-border text-kali-text hover:bg-kali-text-muted;
+  }
+
+  .btn-danger {
+    @apply bg-kali-danger text-white hover:opacity-90;
+  }
+
+  .input {
+    @apply bg-kali-dark border border-kali-border rounded-md px-3 py-2 text-kali-text focus:outline-none focus:border-kali-green;
+  }
+
+  .badge {
+    @apply px-2 py-1 rounded text-xs font-medium;
+  }
+
+  .badge-success {
+    @apply bg-kali-success/20 text-kali-success;
+  }
+
+  .badge-warning {
+    @apply bg-kali-warning/20 text-kali-warning;
+  }
+
+  .badge-danger {
+    @apply bg-kali-danger/20 text-kali-danger;
+  }
+
+  .badge-info {
+    @apply bg-kali-info/20 text-kali-info;
+  }
+
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .status-active {
+    @apply bg-kali-success animate-pulse;
+  }
+
+  .status-inactive {
+    @apply bg-kali-text-muted;
+  }
+
+  .status-warning {
+    @apply bg-kali-warning animate-pulse;
+  }
+
+  .status-danger {
+    @apply bg-kali-danger animate-pulse;
+  }
+
+  .table-container {
+    @apply overflow-auto max-h-[calc(100vh-300px)];
+  }
+
+  .table {
+    @apply w-full text-sm;
+  }
+
+  .table th {
+    @apply text-left py-3 px-4 text-kali-text-muted border-b border-kali-border font-medium;
+  }
+
+  .table td {
+    @apply py-3 px-4 border-b border-kali-border/50;
+  }
+
+  .table tr:hover {
+    @apply bg-kali-dark/50;
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-3 px-4 py-3 text-kali-text-muted hover:text-kali-text hover:bg-kali-bg transition-all duration-200 cursor-pointer;
+  }
+
+  .sidebar-item.active {
+    @apply text-kali-green bg-kali-bg border-l-2 border-kali-green;
+  }
+
+  .glow-text {
+    text-shadow: 0 0 10px #00FF00, 0 0 20px #00FF00;
+  }
+
+  .glow-border {
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.3), 0 0 10px rgba(0, 255, 0, 0.2);
+  }
+}
+
+/* 动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* 图表样式 */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: #30363D;
+}
+
+.recharts-text {
+  fill: #8B949E;
+}
