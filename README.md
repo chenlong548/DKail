@@ -1,170 +1,170 @@
-# DKail Security Monitor
+# DKail 安全监控系统
 
-A lightweight local network security monitoring system built with Rust and Tauri.
+一个基于 Rust 和 Tauri 构建的轻量级本地网络安全监控系统。
 
-## Features
+## 功能特性
 
-- **Real-time Network Traffic Monitoring**: Capture and analyze network packets, identify suspicious connections
-- **Process Behavior Monitoring**: Monitor system process activities, detect suspicious processes
-- **Threat Detection**: Signature-based threat detection system
-- **Desktop Application**: Modern desktop UI with Kali Linux inspired dark theme
+- **实时网络流量监控**：捕获和分析网络数据包，识别可疑连接
+- **进程行为监控**：监控系统进程活动，检测可疑进程
+- **威胁检测**：基于签名的威胁检测系统
+- **桌面应用**：采用 Kali Linux 风格暗色主题的现代桌面界面
 
-## Tech Stack
+## 技术栈
 
-### Backend
-- **Rust** - High-performance, memory-safe systems programming
-- **Actix-web** - Powerful HTTP framework for REST API
-- **Tokio** - Async runtime for concurrent operations
-- **Npcap/WinPcap** - Network packet capture library
-- **Windows API** - Process monitoring and system information
+### 后端
+- **Rust** - 高性能、内存安全的系统编程语言
+- **Actix-web** - 强大的 HTTP 框架，用于构建 REST API
+- **Tokio** - 异步运行时，支持并发操作
+- **Npcap/WinPcap** - 网络数据包捕获库
+- **Windows API** - 进程监控和系统信息获取
 
-### Frontend
-- **Tauri 2.0** - Cross-platform desktop application framework
-- **React 18** - Modern UI library
-- **TypeScript** - Type-safe JavaScript
-- **Tailwind CSS** - Utility-first CSS framework
-- **Zustand** - Lightweight state management
-- **Recharts** - Charting library for data visualization
+### 前端
+- **Tauri 2.0** - 跨平台桌面应用框架
+- **React 18** - 现代 UI 库
+- **TypeScript** - 类型安全的 JavaScript
+- **Tailwind CSS** - 实用优先的 CSS 框架
+- **Zustand** - 轻量级状态管理
+- **Recharts** - 数据可视化图表库
 
-## Prerequisites
+## 环境要求
 
-### Required Software
-1. **Rust** (1.95.0+ for GNU backend, nightly for Tauri UI)
-2. **Node.js** (18+) and npm
-3. **Npcap** - Network packet capture driver
-4. **Visual Studio Build Tools** (for MSVC toolchain)
-5. **MinGW-w64** (for GNU toolchain)
+### 必需软件
+1. **Rust**（后端需要 1.95.0+ GNU 版本，Tauri UI 需要 nightly 版本）
+2. **Node.js**（18+）和 npm
+3. **Npcap** - 网络数据包捕获驱动
+4. **Visual Studio Build Tools**（用于 MSVC 工具链）
+5. **MinGW-w64**（用于 GNU 工具链）
 
-### Npcap Installation
-Download from https://npcap.com/ and install with:
-- "WinPcap API-compatible Mode" enabled
-- "Support raw 802.11 traffic" enabled
+### Npcap 安装
+从 https://npcap.com/ 下载并安装，安装时需要：
+- 启用 "WinPcap API-compatible Mode"
+- 启用 "Support raw 802.11 traffic"
 
-## Quick Start
+## 快速开始
 
-### 1. Clone the Repository
+### 1. 克隆仓库
 
 ```bash
 git clone https://github.com/yourusername/dkail.git
 cd dkail
 ```
 
-### 2. Build Backend Service
+### 2. 构建后端服务
 
 ```powershell
-# Set GNU toolchain (required for Npcap library)
+# 设置 GNU 工具链（Npcap 库需要）
 rustup default stable-x86_64-pc-windows-gnu
 
-# Build
+# 构建
 cargo build
 
-# Run
+# 运行
 cargo run
 ```
 
-The backend service will start at `http://127.0.0.1:8080`
+后端服务将在 `http://127.0.0.1:8080` 启动
 
-### 3. Build Desktop Application
+### 3. 构建桌面应用
 
 ```powershell
-# Navigate to UI directory
+# 进入 UI 目录
 cd dkail-ui
 
-# Set MSVC nightly toolchain (required for Tauri)
+# 设置 MSVC nightly 工具链（Tauri 需要）
 rustup override set nightly-x86_64-pc-windows-msvc
 
-# Install dependencies
+# 安装依赖
 npm install
 
-# Development mode
+# 开发模式运行
 npm run tauri dev
 
-# Or build for production
+# 或构建生产版本
 npm run tauri build
 ```
 
-## API Endpoints
+## API 端点
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/status` | GET | System status |
-| `/processes` | GET | Process list |
-| `/network` | GET | Network connections |
-| `/alerts` | GET | Security alerts |
+| 端点 | 方法 | 描述 |
+|------|------|------|
+| `/status` | GET | 系统状态 |
+| `/processes` | GET | 进程列表 |
+| `/network` | GET | 网络连接 |
+| `/alerts` | GET | 安全告警 |
 
-## Project Structure
+## 项目结构
 
 ```
 dkail/
-├── src/                    # Rust backend source
-│   ├── main.rs            # Application entry
-│   ├── lib.rs             # Library exports
-│   ├── network/           # Network monitoring module
-│   ├── process/           # Process monitoring module
-│   ├── threat/            # Threat detection module
-│   └── api/               # REST API module
-├── dkail-ui/              # Tauri desktop application
-│   ├── src/               # React frontend
-│   │   ├── components/    # Reusable components
-│   │   ├── pages/         # Page components
-│   │   ├── services/      # API services
-│   │   └── store/         # State management
-│   └── src-tauri/         # Tauri backend
-├── tests/                 # Integration tests
-├── docs/                  # Documentation
-└── build.rs               # Build configuration
+├── src/                    # Rust 后端源码
+│   ├── main.rs            # 应用入口
+│   ├── lib.rs             # 库导出
+│   ├── network/           # 网络监控模块
+│   ├── process/           # 进程监控模块
+│   ├── threat/            # 威胁检测模块
+│   └── api/               # REST API 模块
+├── dkail-ui/              # Tauri 桌面应用
+│   ├── src/               # React 前端
+│   │   ├── components/    # 可复用组件
+│   │   ├── pages/         # 页面组件
+│   │   ├── services/      # API 服务
+│   │   └── store/         # 状态管理
+│   └── src-tauri/         # Tauri 后端
+├── tests/                 # 集成测试
+├── docs/                  # 文档
+└── build.rs               # 构建配置
 ```
 
-## Configuration
+## 配置
 
-### Environment Variables
+### 环境变量
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DKAIL_API_PORT` | API server port | 8080 |
-| `DKAIL_AUTH_TOKEN` | Bearer token for API auth | None |
-| `DKAIL_NETWORK_INTERFACE` | Network interface for capture | Auto-detect |
-| `DKAIL_LOG_LEVEL` | Log level | Info |
+| 变量 | 描述 | 默认值 |
+|------|------|--------|
+| `DKAIL_API_PORT` | API 服务端口 | 8080 |
+| `DKAIL_AUTH_TOKEN` | API 认证的 Bearer 令牌 | 无 |
+| `DKAIL_NETWORK_INTERFACE` | 网络捕获接口 | 自动检测 |
+| `DKAIL_LOG_LEVEL` | 日志级别 | Info |
 
-## Security Notes
+## 安全说明
 
-- The application uses `PROCESS_QUERY_LIMITED_INFORMATION` for minimal privilege process monitoring
-- API authentication is optional via `DKAIL_AUTH_TOKEN` environment variable
-- Network capture requires Npcap driver installation
-- All unsafe code blocks use RAII pattern for proper resource management
+- 应用使用 `PROCESS_QUERY_LIMITED_INFORMATION` 实现最小权限进程监控
+- API 认证通过 `DKAIL_AUTH_TOKEN` 环境变量配置（可选）
+- 网络捕获需要安装 Npcap 驱动
+- 所有 unsafe 代码块使用 RAII 模式进行正确的资源管理
 
-### Security Features
+### 安全特性
 
-- **API Authentication**: Bearer token authentication with constant-time comparison
-- **Rate Limiting**: 100 requests per 60 seconds per IP address
-- **CORS Protection**: Configurable cross-origin resource sharing
-- **Path Sanitization**: Sensitive information (usernames) is masked in API responses
-- **Error Handling**: Proper error responses without exposing internal details
+- **API 认证**：Bearer 令牌认证，使用常量时间比较防止时序攻击
+- **速率限制**：每个 IP 地址每 60 秒最多 100 次请求
+- **CORS 保护**：可配置的跨域资源共享
+- **路径脱敏**：API 响应中屏蔽敏感信息（如用户名）
+- **错误处理**：正确的错误响应，不暴露内部细节
 
-### Security Best Practices
+### 安全最佳实践
 
-1. **Set a strong authentication token**:
+1. **设置强认证令牌**：
    ```powershell
    $env:DKAIL_AUTH_TOKEN = "your-secure-random-token-here"
    ```
 
-2. **Run with minimal privileges**: The application only requires `PROCESS_QUERY_LIMITED_INFORMATION`
+2. **使用最小权限运行**：应用只需要 `PROCESS_QUERY_LIMITED_INFORMATION` 权限
 
-3. **Monitor logs**: Check logs for authentication failures and rate limit violations
+3. **监控日志**：检查日志中的认证失败和速率限制违规
 
-## License
+## 许可证
 
 MIT License
 
-## Contributing
+## 贡献
 
-Contributions are welcome! Please read our contributing guidelines before submitting PRs.
+欢迎贡献！提交 PR 前请阅读贡献指南。
 
-## Version History
+## 版本历史
 
-- **1.0.0** (2026-04-22) - Initial release
-  - Real-time network monitoring
-  - Process behavior monitoring
-  - Threat detection
-  - Desktop UI application
-  - Security fixes: API authentication, rate limiting, CORS, path sanitization
+- **1.0.0** (2026-04-22) - 初始发布
+  - 实时网络监控
+  - 进程行为监控
+  - 威胁检测
+  - 桌面 UI 应用
+  - 安全修复：API 认证、速率限制、CORS、路径脱敏
