@@ -99,6 +99,8 @@ impl Deref for ProcessHandle {
 pub struct ProcessMonitor {
     pub process_cache: HashMap<u32, ProcessInfo>,
     shutdown_flag: Arc<tokio::sync::watch::Receiver<bool>>,
+    cpu_times: HashMap<u32, (u64, u64)>, // (user_time, kernel_time)
+    last_cpu_time: Instant,
 }
 
 #[derive(Debug, Clone)]
@@ -143,6 +145,8 @@ impl ProcessMonitor {
         Self {
             process_cache: HashMap::new(),
             shutdown_flag: Arc::new(tokio::sync::watch::channel(false).1),
+            cpu_times: HashMap::new(),
+            last_cpu_time: Instant::now(),
         }
     }
     
@@ -151,6 +155,8 @@ impl ProcessMonitor {
         Self {
             process_cache: HashMap::new(),
             shutdown_flag,
+            cpu_times: HashMap::new(),
+            last_cpu_time: Instant::now(),
         }
     }
     
@@ -229,17 +235,41 @@ impl ProcessMonitor {
         
         info!("Found {} processes", process_count);
         
+        // Track current process IDs
+        let mut current_pids = std::collections::HashSet::new();
+        
         for i in 0..process_count {
             let pid = process_ids[i];
             if pid == 0 {
                 continue;
             }
             
+            current_pids.insert(pid);
+            
             if !self.process_cache.contains_key(&pid) {
                 if let Ok(info) = self.get_process_info(pid) {
                     info!("New process detected: {} (PID: {})", info.name, info.pid);
                     self.process_cache.insert(pid, info);
                 }
+            } else {
+                // Update existing process
+                if let Some(info) = self.process_cache.get_mut(&pid) {
+                    info.last_update = Instant::now();
+                }
+            }
+        }
+        
+        // Remove processes that no longer exist
+        let mut to_remove = Vec::new();
+        for pid in self.process_cache.keys() {
+            if !current_pids.contains(pid) {
+                to_remove.push(*pid);
+            }
+        }
+        
+        for pid in to_remove {
+            if let Some(info) = self.process_cache.remove(&pid) {
+                info!("Process terminated: {} (PID: {})", info.name, pid);
             }
         }
         
@@ -311,6 +341,78 @@ impl ProcessMonitor {
         })
     }
     
+    /// Get CPU and memory usage for processes
+    fn get_process_resources(&mut self) -> HashMap<u32, (f32, u64)> {
+        use winapi::um::psapi::GetProcessMemoryInfo;
+        use winapi::um::psapi::PROCESS_MEMORY_COUNTERS;
+        use winapi::um::processthreadsapi::OpenProcess;
+        use winapi::um::processthreadsapi::GetProcessTimes;
+        use winapi::um::winnt::PROCESS_QUERY_LIMITED_INFORMATION;
+        use winapi::shared::minwindef::FALSE;
+        use winapi::shared::minwindef::FILETIME;
+        
+        let mut resources = HashMap::new();
+        let current_time = Instant::now();
+        let elapsed_ms = current_time.duration_since(self.last_cpu_time).as_millis() as f32;
+        
+        for pid in self.process_cache.keys() {
+            let handle = unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, *pid) };
+            let process_handle = unsafe { ProcessHandle::new(handle) };
+            
+            if process_handle.is_valid() {
+                unsafe {
+                    let mut mem_info: PROCESS_MEMORY_COUNTERS = std::mem::zeroed();
+                    mem_info.cb = std::mem::size_of::<PROCESS_MEMORY_COUNTERS>() as u32;
+                    
+                    let mut creation_time: FILETIME = std::mem::zeroed();
+                    let mut exit_time: FILETIME = std::mem::zeroed();
+                    let mut kernel_time: FILETIME = std::mem::zeroed();
+                    let mut user_time: FILETIME = std::mem::zeroed();
+                    
+                    let memory_usage = if GetProcessMemoryInfo(process_handle.as_raw(), &mut mem_info, mem_info.cb) != 0 {
+                        mem_info.WorkingSetSize as u64 / 1024 / 1024 // MB
+                    } else {
+                        0
+                    };
+                    
+                    let cpu_usage = if GetProcessTimes(
+                        process_handle.as_raw(),
+                        &mut creation_time,
+                        &mut exit_time,
+                        &mut kernel_time,
+                        &mut user_time
+                    ) != 0 && elapsed_ms > 0.0 {
+                        // Convert FILETIME to u64 (100-nanosecond intervals)
+                        let kernel_time_us = ((kernel_time.dwHighDateTime as u64) << 32) | (kernel_time.dwLowDateTime as u64);
+                        let user_time_us = ((user_time.dwHighDateTime as u64) << 32) | (user_time.dwLowDateTime as u64);
+                        let total_time_us = kernel_time_us + user_time_us;
+                        
+                        // Calculate CPU usage
+                        if let Some((prev_user, prev_kernel)) = self.cpu_times.get(pid) {
+                            let prev_total = prev_user + prev_kernel;
+                            let time_diff = (total_time_us - prev_total) as f32 / 10000.0; // Convert to milliseconds
+                            (time_diff / elapsed_ms) * 100.0
+                        } else {
+                            0.0
+                        }
+                    } else {
+                        0.0
+                    };
+                    
+                    // Update last CPU times
+                    let kernel_time_us = ((kernel_time.dwHighDateTime as u64) << 32) | (kernel_time.dwLowDateTime as u64);
+                    let user_time_us = ((user_time.dwHighDateTime as u64) << 32) | (user_time.dwLowDateTime as u64);
+                    self.cpu_times.insert(*pid, (user_time_us, kernel_time_us));
+                    
+                    resources.insert(*pid, (cpu_usage, memory_usage));
+                }
+            }
+        }
+        
+        self.last_cpu_time = current_time;
+        resources
+    }
+    
     fn check_suspicious_processes(&self) -> Result<(), ProcessError> {
         for (pid, info) in &self.process_cache {
             if self.is_suspicious_process(info) {
@@ -338,16 +440,21 @@ impl ProcessMonitor {
         self.process_cache.len()
     }
     
-    async fn update_system_state(&self, state: &Arc<RwLock<SystemState>>) {
+    async fn update_system_state(&mut self, state: &Arc<RwLock<SystemState>>) {
+        let resources = self.get_process_resources();
+        
         let processes: Vec<crate::ProcessSummary> = self.process_cache
             .values()
             .take(100)
-            .map(|p| crate::ProcessSummary {
-                pid: p.pid,
-                name: p.name.clone(),
-                path: sanitize_path(&p.path),
-                cpu_usage: 0.0,
-                memory_usage: 0,
+            .map(|p| {
+                let (cpu_usage, memory_usage) = resources.get(&p.pid).unwrap_or(&(0.0, 0));
+                crate::ProcessSummary {
+                    pid: p.pid,
+                    name: p.name.clone(),
+                    path: sanitize_path(&p.path),
+                    cpu_usage: *cpu_usage,
+                    memory_usage: *memory_usage,
+                }
             })
             .collect();
         

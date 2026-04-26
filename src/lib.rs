@@ -104,6 +104,7 @@ pub mod network;
 pub mod process;
 pub mod threat;
 pub mod api;
+pub mod system;
 
 // Re-exports
 pub use network::NetworkMonitor;

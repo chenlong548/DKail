@@ -62,7 +62,7 @@ export default function StatusBar() {
           <span className="text-kali-text font-mono">{processCount}</span>
         </div>
         <div className="text-kali-text-muted">
-          DKail Security v0.1.0
+          DKail Security v1.0.0
         </div>
       </div>
     </footer>

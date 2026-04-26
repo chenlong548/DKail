@@ -40,7 +40,7 @@ export default function ResourceGauge({ label, value, color }: ResourceGaugeProp
         </svg>
         {/* 中心数值 */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-lg font-bold text-kali-text">{value}%</span>
+          <span className="text-lg font-bold text-kali-text">{Math.min(value, 100).toFixed(1)}%</span>
         </div>
       </div>
       <div className="flex-1">
@@ -49,7 +49,7 @@ export default function ResourceGauge({ label, value, color }: ResourceGaugeProp
           <div 
             className="h-full rounded-full transition-all duration-500"
             style={{ 
-              width: `${value}%`,
+              width: `${Math.min(value, 100)}%`,
               backgroundColor: color,
             }}
           />

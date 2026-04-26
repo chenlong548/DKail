@@ -8,6 +8,7 @@ import type {
   SystemResources,
   Settings 
 } from '../types';
+import { apiService } from '../services/api';
 
 interface AppState {
   // 系统状态
@@ -49,6 +50,8 @@ interface AppState {
   setProcesses: (processes: ProcessInfo[]) => void;
   setSelectedProcess: (process: ProcessInfo | null) => void;
   setConnections: (connections: NetworkConnection[]) => void;
+  setPacketCount: (count: number) => void;
+  setByteCount: (count: number) => void;
   setTrafficData: (data: TrafficDataPoint[]) => void;
   addTrafficPoint: (point: TrafficDataPoint) => void;
   setResources: (resources: SystemResources) => void;
@@ -57,6 +60,7 @@ interface AppState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   clearAlerts: () => void;
+  fetchProcesses: () => Promise<void>;
 }
 
 const defaultSettings: Settings = {
@@ -128,6 +132,10 @@ export const useStore = create<AppState>((set) => ({
   
   setConnections: (connections) => set({ connections }),
   
+  setPacketCount: (count) => set({ packetCount: count }),
+  
+  setByteCount: (count) => set({ byteCount: count }),
+  
   setTrafficData: (data) => set({ trafficData: data }),
   
   addTrafficPoint: (point) => set((state) => ({ 
@@ -145,4 +153,23 @@ export const useStore = create<AppState>((set) => ({
   setError: (error) => set({ error }),
   
   clearAlerts: () => set({ alerts: [], alertCount: 0 }),
+  
+  fetchProcesses: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      const processesData = await apiService.getProcesses();
+      set({ 
+        processes: processesData.processes, 
+        processCount: processesData.processes.length,
+        lastUpdate: new Date(),
+        isLoading: false 
+      });
+    } catch (error) {
+      console.error('Failed to fetch processes:', error);
+      set({ 
+        error: 'Failed to fetch processes', 
+        isLoading: false 
+      });
+    }
+  },
 }));

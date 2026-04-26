@@ -35,6 +35,8 @@ pub struct NetworkMonitor {
     pub interface_name: String,
     packet_count: u64,
     byte_count: u64,
+    network_in: u64,
+    network_out: u64,
     connection_stats: HashMap<String, ConnectionStats>,
     shutdown_flag: Arc<tokio::sync::watch::Receiver<bool>>,
     last_cleanup: Instant,
@@ -59,6 +61,8 @@ impl NetworkMonitor {
             interface_name,
             packet_count: 0,
             byte_count: 0,
+            network_in: 0,
+            network_out: 0,
             connection_stats: HashMap::new(),
             shutdown_flag: Arc::new(tokio::sync::watch::channel(false).1),
             last_cleanup: Instant::now(),
@@ -71,6 +75,8 @@ impl NetworkMonitor {
             interface_name,
             packet_count: 0,
             byte_count: 0,
+            network_in: 0,
+            network_out: 0,
             connection_stats: HashMap::new(),
             shutdown_flag,
             last_cleanup: Instant::now(),
@@ -159,6 +165,8 @@ impl NetworkMonitor {
                         let mut s = state.write().await;
                         s.packet_count = self.packet_count;
                         s.byte_count = self.byte_count;
+                        s.network_in = self.network_in;
+                        s.network_out = self.network_out;
                         
                         // Convert connection stats to summary
                         let connections: Vec<crate::NetworkConnectionSummary> = self.connection_stats
@@ -295,6 +303,19 @@ impl NetworkMonitor {
         let protocol = data[9];
         let source_ip = format!("{}.{}.{}.{}", data[12], data[13], data[14], data[15]);
         let dest_ip = format!("{}.{}.{}.{}", data[16], data[17], data[18], data[19]);
+        
+        // Check if this is inbound or outbound traffic
+        // For now, consider private IPs as local (simplified approach)
+        let is_local_source = self.is_local_ip(&source_ip);
+        let is_local_dest = self.is_local_ip(&dest_ip);
+        
+        if is_local_source && !is_local_dest {
+            // Outbound traffic (from local to remote)
+            self.network_out += data.len() as u64;
+        } else if !is_local_source && is_local_dest {
+            // Inbound traffic (from remote to local)
+            self.network_in += data.len() as u64;
+        }
         
         // SECURITY FIX: Pass correct offset based on actual header length
         let payload = &data[header_length..];
@@ -452,6 +473,46 @@ impl NetworkMonitor {
     /// Get connection statistics
     pub fn get_connection_stats(&self) -> &HashMap<String, ConnectionStats> {
         &self.connection_stats
+    }
+    
+    /// Check if an IP address is a local/private address
+    fn is_local_ip(&self, ip: &str) -> bool {
+        // Check for private IPv4 addresses
+        let parts: Vec<&str> = ip.split('.').collect();
+        if parts.len() == 4 {
+            if let Ok(first) = parts[0].parse::<u8>() {
+                match first {
+                    10 => return true, // 10.0.0.0/8
+                    172 => {
+                        if let Ok(second) = parts[1].parse::<u8>() {
+                            if second >= 16 && second <= 31 {
+                                return true; // 172.16.0.0/12
+                            }
+                        }
+                    }
+                    192 => {
+                        if parts[1] == "168" {
+                            return true; // 192.168.0.0/16
+                        }
+                    }
+                    127 => return true, // 127.0.0.0/8 (loopback)
+                    _ => {}
+                }
+            }
+        }
+        
+        // Check for IPv6 local addresses
+        if ip.starts_with("fe80:") {
+            return true; // Link-local
+        }
+        if ip.starts_with("fc00:") || ip.starts_with("fd00:") {
+            return true; // Unique local addresses
+        }
+        if ip == "::1" {
+            return true; // IPv6 loopback
+        }
+        
+        false
     }
 }
 

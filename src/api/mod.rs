@@ -121,6 +121,15 @@ pub struct NetworkResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct ResourcesResponse {
+    pub cpu_usage: f32,
+    pub memory_usage: f32,
+    pub disk_usage: f32,
+    pub network_in: u64,
+    pub network_out: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ErrorResponse {
     pub error: String,
     pub code: u16,
@@ -164,6 +173,7 @@ impl ApiServer {
                 .route("/alerts", web::get().to(alerts))
                 .route("/processes", web::get().to(processes))
                 .route("/network", web::get().to(network))
+                .route("/resources", web::get().to(resources))
         })
         .bind(("127.0.0.1", self.port))?
         .run()
@@ -224,7 +234,7 @@ async fn index() -> impl Responder {
         "name": "DKail Security System",
         "version": "1.0.0",
         "status": "running",
-        "endpoints": ["/health", "/status", "/alerts", "/processes", "/network"]
+        "endpoints": ["/health", "/status", "/alerts", "/processes", "/network", "/resources"]
     }))
 }
 
@@ -355,6 +365,39 @@ async fn network(
         connections: s.network_connections.clone(),
         packet_count: s.packet_count,
         byte_count: s.byte_count,
+    })
+}
+
+async fn resources(
+    req: HttpRequest,
+    state: web::Data<Arc<RwLock<SystemState>>>,
+    auth_token: web::Data<Option<String>>,
+    rate_limiter: web::Data<RateLimiter>,
+) -> impl Responder {
+    let client_ip = get_client_ip(&req);
+    
+    if !rate_limiter.check(&client_ip).await {
+        warn!("Rate limit exceeded for {}", client_ip);
+        return HttpResponse::TooManyRequests().json(ErrorResponse {
+            error: "Rate limit exceeded".to_string(),
+            code: 429,
+        });
+    }
+    
+    if let Err(e) = verify_auth(&req, &auth_token) {
+        return HttpResponse::Unauthorized().json(e);
+    }
+    
+    info!("Resources endpoint called");
+    
+    let s = state.read().await;
+    
+    HttpResponse::Ok().json(ResourcesResponse {
+        cpu_usage: s.cpu_usage,
+        memory_usage: s.memory_usage,
+        disk_usage: s.disk_usage,
+        network_in: s.network_in,
+        network_out: s.network_out,
     })
 }
 

@@ -12,7 +12,7 @@ import {
 import type { ProcessInfo } from '../types';
 
 export default function ProcessMonitor() {
-  const { processes, selectedProcess, setSelectedProcess, processCount } = useStore();
+  const { processes, selectedProcess, setSelectedProcess, processCount, fetchProcesses } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'cpu' | 'memory' | 'pid'>('cpu');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -53,7 +53,7 @@ export default function ProcessMonitor() {
 
   const formatMemory = (mb: number) => {
     if (mb >= 1024) {
-      return `${(mb / 1024).toFixed(2)} GB`;
+      return `${(mb / 1024).toFixed(1)} GB`;
     }
     return `${mb.toFixed(0)} MB`;
   };
@@ -67,7 +67,10 @@ export default function ProcessMonitor() {
           <p className="text-kali-text-muted mt-1">监控系统进程和资源使用</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="btn btn-secondary flex items-center gap-2">
+          <button 
+            className="btn btn-secondary flex items-center gap-2"
+            onClick={fetchProcesses}
+          >
             <RefreshCw className="w-4 h-4" />
             刷新
           </button>
@@ -261,7 +264,7 @@ export default function ProcessMonitor() {
                 </div>
                 <div>
                   <label className="text-sm text-kali-text-muted">CPU 使用率</label>
-                  <div className="text-kali-green font-mono">{selectedProcess.cpu_usage.toFixed(2)}%</div>
+                  <div className="text-kali-green font-mono">{selectedProcess.cpu_usage.toFixed(1)}%</div>
                 </div>
                 <div>
                   <label className="text-sm text-kali-text-muted">内存使用</label>

@@ -2,6 +2,7 @@ use log::{info, error, warn};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use dkail::SystemState;
+use dkail::system::SystemMonitor;
 
 // Re-export module functions
 use dkail::network::start_monitoring_with_shutdown as start_network_monitoring;
@@ -94,6 +95,33 @@ async fn main() -> std::io::Result<()> {
         info!("Threat detection stopped");
     });
     
+    // Spawn system resource monitor task
+    let resource_state = Arc::clone(&state);
+    let mut resource_shutdown = (*shutdown_rx).clone();
+    let resource_handle = tokio::spawn(async move {
+        info!("Starting system resource monitor...");
+        let mut monitor = SystemMonitor::new();
+        let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(2));
+        
+        loop {
+            tokio::select! {
+                _ = interval.tick() => {
+                    let resources = monitor.get_resources();
+                    let mut state = resource_state.write().await;
+                    state.cpu_usage = resources.cpu_usage;
+                    state.memory_usage = resources.memory_usage;
+                    state.disk_usage = resources.disk_usage;
+                }
+                _ = resource_shutdown.changed() => {
+                    if *resource_shutdown.borrow() {
+                        break;
+                    }
+                }
+            }
+        }
+        info!("System resource monitor stopped");
+    });
+    
     // Run API server in main task (blocking)
     let api_state = Arc::clone(&state);
     info!("Starting API server...");
@@ -106,7 +134,7 @@ async fn main() -> std::io::Result<()> {
     let _ = shutdown_tx.send(true);
     
     // Wait for other tasks to complete
-    let _ = tokio::try_join!(network_handle, process_handle, threat_handle);
+    let _ = tokio::try_join!(network_handle, process_handle, threat_handle, resource_handle);
     
     info!("===========================================");
     info!("DKail Security System stopped gracefully");

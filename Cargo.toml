@@ -15,7 +15,7 @@ serde_json = "1.0"
 log = "0.4"
 env_logger = "0.10"
 chrono = { version = "0.4", features = ["serde"] }
-winapi = { version = "0.3", features = ["winuser", "processthreadsapi", "handleapi", "psapi", "winnt", "securitybaseapi", "iphlpapi", "winsock2"] }
+winapi = { version = "0.3", features = ["winuser", "processthreadsapi", "handleapi", "psapi", "winnt", "securitybaseapi", "iphlpapi", "winsock2", "sysinfoapi", "fileapi"] }
 pcap = "1.1"
 dns-parser = "0.8"
 httparse = "1.8"

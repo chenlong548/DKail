@@ -54,8 +54,8 @@ export default function Sidebar() {
       {/* 底部信息 */}
       <div className="p-4 border-t border-kali-border">
         <div className="text-xs text-kali-text-muted space-y-1">
-          <p>Version: 0.1.0</p>
-          <p>Build: 2024.01</p>
+          <p>Version: 1.0.0</p>
+          <p>Build: 2026.04</p>
         </div>
       </div>
     </aside>

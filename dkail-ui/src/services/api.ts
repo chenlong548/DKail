@@ -2,7 +2,8 @@ import type {
   SystemStatus, 
   AlertsResponse, 
   ProcessesResponse, 
-  NetworkResponse 
+  NetworkResponse,
+  ResourcesResponse
 } from '../types';
 
 const API_BASE_URL = 'http://127.0.0.1:8080';
@@ -103,6 +104,10 @@ class ApiService {
 
   async getNetwork(): Promise<NetworkResponse> {
     return this.get<NetworkResponse>('/network');
+  }
+
+  async getResources(): Promise<ResourcesResponse> {
+    return this.get<ResourcesResponse>('/resources');
   }
 
   async checkHealth(): Promise<boolean> {
