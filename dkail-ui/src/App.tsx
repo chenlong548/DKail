@@ -130,7 +130,7 @@ function App() {
         };
         addTrafficPoint(trafficPoint);
       }
-    }, 2000);
+    }, 1000);
 
     // 定时检查API连接状态
     const statusInterval = setInterval(async () => {

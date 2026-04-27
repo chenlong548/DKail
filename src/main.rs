@@ -24,7 +24,7 @@ async fn main() -> std::io::Result<()> {
 
     info!("===========================================");
     info!("DKail Security System starting...");
-    info!("Version: 0.1.0");
+    info!("Version: 1.0.0");
     info!("===========================================");
     
     // Create shared system state
