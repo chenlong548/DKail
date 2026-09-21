@@ -16,6 +16,18 @@
 /docs/Rust学习笔记.md
 /docs/Git学习笔记.md
 
+# Presentation / talk material — kept local on purpose.
+# Internal speaking material for walkthroughs, not repository content.
+/docs/DKail项目讲解PPT.md
+/docs/DKail项目开发伪代码.md
+/docs/PPT技术栈名词详解.md
+/docs/generate_ppt.py
+/docs/generate_ppt_v2.py
+/docs/generate_optimized_ppt.py
+/docs/read_ppt.py
+/docs/read_ppt_full.py
+/docs/*.pptx
+
 # IDE and editor files
 .idea/
 .vscode/
