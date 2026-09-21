@@ -566,3 +566,7 @@ pub async fn start_monitoring_with_shutdown(
     let mut monitor = NetworkMonitor::with_shutdown(interface, shutdown_flag);
     monitor.start_capture(state).await
 }
+
+#[cfg(test)]
+#[path = "adversarial_parsing_tests.rs"]
+mod adversarial_parsing_tests;
